@@ -1,0 +1,242 @@
+#Chat-container-grid {
+    display: grid;
+    grid-template-columns: 1fr 4fr;
+    grid-template-rows: 1fr 5fr 1fr;
+    height: 100%;
+    width: 100%;
+    
+}
+
+.temp-red {
+    background-color: white;
+}
+
+.temp-blue {
+    background-color: blue;
+}
+
+.temp-green {
+    background-color: white;
+}
+
+.temp-purple {
+    background-color: white;
+}
+
+.temp-yellow {
+    background-color: white;
+}
+
+.temp-aqua {
+    background-color: white;
+}
+
+.temp-border {
+    border-width: 20px;
+}
+
+#Chat-chatroom-btn-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-bottom: 2px solid;
+}
+
+#Chat-addchatroom-btn {
+    width: 70%;
+    height: 50%;
+    border: none;
+    background-color: blue;
+    color:white;
+}
+
+#Chat-signout-container {
+    border-top: 1px solid;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;;
+    gap: 0;
+}
+
+#Chat-signout-username {
+    display: block;
+    margin-bottom: 5px;
+}
+
+#Chat-signout-button {
+    display: block;
+    width:30%;
+    height: 30%;
+    background-color: green;
+    color:white;
+    border: none;
+}
+
+#Chat-messaging-content-container{
+    display: flex;
+    width: 100%;
+    height: 100%;
+    justify-content: center;
+    align-items: center;
+    gap:2%;
+}
+
+#Chat-messaging-main-container {
+    padding:20px;
+    border-left: 1px solid;
+}
+
+#Chat-message-box {
+    box-sizing: content-box;
+    width: 70%;
+    height: 50%;
+    padding-left: 20px;
+    padding-right: 20px;
+}
+
+#Chat-message-submit-btn {
+    box-sizing: content-box;
+    height: 50%;
+    width: 7%;
+    border:none;
+    background-color: green;
+    color:white;
+}
+
+#Chat-chatroom-desc-content-container {
+    display: flex;
+    width: 100%;
+    height: 100%;
+    justify-content: center;
+    align-items: center;
+}
+
+#Chat-spacer {
+    flex-grow: 1;
+}
+
+#Chat-chatroom-desc-main-container {
+    padding-left: 15%;
+    padding-right: 15%;
+    border-left: 1px solid;
+}
+
+#Chat-leave-btn{
+    width:10%;
+    height: 30%;
+    background-color: red;
+    color:white;
+    border:none;
+}
+
+#Chat-title-text{
+    font-size: 30px;
+}
+
+#Chat-chatroom-main-content {
+    display:flex;
+    flex-direction: column-reverse;
+    overflow-y: auto;
+    border: 1px solid;
+}
+
+.Chat-user-text-content{
+    display: flex;
+    flex-direction: row-reverse;
+}
+
+.Chat-nonuser-text-content{
+    display: flex;
+    flex-direction: row;
+}
+
+.Chat-user-text-container {
+    width: 100%;;
+}
+.Chat-nonuser-text-container {
+    width: 100%;;
+    display: flex;
+    flex-direction: row;
+    padding-left:10px;
+    box-sizing: border-box;
+}
+
+.Chat-user-text {
+    margin-bottom: 0;
+    padding-left:15px;
+    padding-right:15px;
+    padding-top: 5px;
+    padding-bottom: 5px;
+    border: 1px solid;
+    border-radius: 10%;
+}
+
+.Chat-user-generic-container {
+    margin-right:5px;
+    margin-bottom:10px;
+}
+
+.Chat-nonuser-generic-container {
+    margin-left:5px;
+    margin-bottom:10px;
+}
+
+.Chat-user-text-item {
+    margin:0;
+    font-size: 1rem;
+}
+
+.Chat-user-text-date {
+    margin:0;
+    float: right;
+    font-size: 12px;
+}
+
+.Chat-nonuser-text-date {
+    margin:0;
+    float: left;
+    font-size: 12px;
+}
+
+.Chat-nonuser-image {
+    border: 1px solid;
+    border-radius: 50%;
+    width:40px;
+    height: 40px;
+    text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.Chat-nonuser-image-text {
+    font-size: 20px;
+}
+
+#Chat-chatroom-list-container {
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+}
+
+.Chat-chatroom-server {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-sizing: border-box;
+    padding-top:5px;
+    padding-bottom: 5px;
+    border-bottom: 2px solid;
+    transition: color .3s ease-in-out, box-shadow .3s ease-in-out;
+    cursor: pointer;
+}
+
+.Chat-chatroom-server-name {
+    cursor:pointer;
+}
+
+.Chat-chatroom-server:hover {
+    box-shadow: inset 100px 0 0 0 #0f0f0f;
+    color: black;
+  }

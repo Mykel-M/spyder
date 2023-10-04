@@ -1,0 +1,72 @@
+.Signup-Box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    height: 55%;
+    width:40%;
+    border-style: solid;
+    padding: 49px;
+}
+
+.Signup-label {
+    display: block;
+}
+
+.Signup-container {
+    height: 100%;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.Signup-label {
+    text-align: center;
+}
+
+.Signup-input {
+    width: 100%;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.Signup-main-items{
+    width: 100%;
+    height: 100%;
+}
+
+.Signup-button {
+    background-color: green;
+    box-shadow: 7px 6px 28px 1px rgba(0, 0, 0, 0.24);
+    margin-top: 40px;
+    width:100%;
+    padding: 25px;
+    border:none;
+    color:white;
+    cursor: pointer;
+    transition: 0.2s all;
+}
+
+.Signup-button:disabled {
+    background-color: black;
+}
+
+.Signup-button:active {
+    transform: scale(0.98);
+            /* Scaling button to 0.98 to its original size */
+    box-shadow: 3px 2px 22px 1px rgba(0, 0, 0, 0.24);
+            /* Lowering the shadow */
+}
+
+
+.Signup-fail-text {
+    color:red;
+}
+
+.Signup-fail-border-coloring {
+    border-color: red;
+}
+
+.Signup-inline {
+    display: inline;
+}
