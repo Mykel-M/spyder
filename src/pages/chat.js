@@ -52,9 +52,11 @@ function ServerListItem({serverName, serverID}){
 function Chat(){
     const [serverList, setServerList] = useState([]);
     const [messages, setMessages] = useState([]);
-    const [chatName, setChatName] = useState('');
+    const [chatName, setChatName] = useState('Default');
     const [serverID, setServerID] = useState(0);
     const [webSocket, setWebSocket] = useState(undefined);
+    const origin = useRef('');
+    const offset = useRef(0);
 
     useEffect(() => {
         const socket = new WebSocket('ws://localhost:8080')
@@ -100,6 +102,15 @@ function Chat(){
             let rawResults = await fetch(`/user/getServerMessages/${server}`)
             //set chat messages
             let jsonResults = await rawResults.json()
+            console.log(jsonResults);
+            if(jsonResults.status == 400){
+                setMessages([]);
+            }
+            else if(jsonResults.status == 100){
+                setMessages(jsonResults.payload.data);
+                origin.current = jsonResults.payload.origin;
+                offset.current = jsonResults.payload.data;
+            }
             //set chat name
             let serverName;
             serverList.forEach(element => {
@@ -111,7 +122,7 @@ function Chat(){
 
             setServerID(server);
             setChatName(serverName);
-            setMessages(jsonResults);
+            
             
             const event = {
                 type:'subscribe',
@@ -129,7 +140,7 @@ function Chat(){
             </div>
             <div id="Chat-chatroom-desc-main-container">
                 <div id="Chat-chatroom-desc-content-container">
-                    <p id="Chat-title-text">Chat Name</p>
+                    <p id="Chat-title-text">{chatName}</p>
                     <div id="Chat-spacer"></div>
                     <button id="Chat-leave-btn">Leave Chat</button>
                 </div>
@@ -138,7 +149,7 @@ function Chat(){
                 {serverList.map((item) => {
                     return (
                         <Fragment key={item.serverID}>
-                            <div className='Chat-chatroom-server' onClick={handleServerClick(item.serverID)}>
+                            <div className='Chat-chatroom-server' onClick={() => handleServerClick(item.serverID)}>
                                 <p className='Chat-chatroom-server-name'>{item.serverName}</p>
                             </div>
                         </Fragment>
@@ -146,29 +157,13 @@ function Chat(){
                 })}
             </div>
             <div className="temp-purple" id="Chat-chatroom-main-content">
-                <div className='Chat-nonuser-text-container'>  
-                    <div className='Chat-nonuser-image'>
-                        <p className='Chat-nonuser-image-text'>J</p>
-                    </div>
-                    <div className="Chat-nonuser-text-content">
-                        <div className="Chat-nonuser-generic-container">
-                            <div className="Chat-user-text">
-                                <p className="Chat-user-text-item">Hi my name is Joe</p>
-                            </div>
-                            <p className="Chat-nonuser-text-date">11:59</p>
-                        </div>
-                    </div>
-                </div>
-                <div className='Chat-user-text-container'>
-                    <div className="Chat-user-text-content">
-                        <div className="Chat-user-generic-container">
-                            <div className="Chat-user-text">
-                                <p className="Chat-user-text-item">Hi my name is mykel</p>
-                            </div>
-                            <p className="Chat-user-text-date">11:59</p>
-                        </div>
-                    </div>
-                </div>        
+                {messages.map((element) => {
+                    return (
+                    <Fragment key={element.message_id}>
+                        <NonUserChatBubble text={element.message} date={'today'}></NonUserChatBubble>
+                    </Fragment>
+                    )
+                })}
             </div>
             <div className="temp-yellow" id="Chat-signout-container">
                 <p id="Chat-signout-username">Pilot122x</p>
