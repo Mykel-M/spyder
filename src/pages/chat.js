@@ -26,7 +26,7 @@ function NonUserChatBubble({userName, text, date}){
         <>
             <div className='Chat-nonuser-text-container'>  
                 <div className='Chat-nonuser-image'>
-                    <p className='Chat-nonuser-image-text'>J</p>
+                    <p className='Chat-nonuser-image-text'>{userName.charAt(0).toUpperCase()}</p>
                 </div>
                 <div className="Chat-nonuser-text-content">
                     <div className="Chat-nonuser-generic-container">
@@ -55,9 +55,12 @@ function Chat(){
     const [chatName, setChatName] = useState('Default');
     const [serverID, setServerID] = useState(0);
     const [webSocket, setWebSocket] = useState(undefined);
+    const [textInput, setTextInput] = useState('')
+    const [username, setUserName] = useState('')
     const origin = useRef('');
     const offset = useRef(0);
-
+    const inputRef = useRef(null);
+    
     useEffect(() => {
         const socket = new WebSocket('ws://localhost:8080')
 
@@ -72,7 +75,13 @@ function Chat(){
         socket.onerror = (e) => console.log(e);
         
         socket.onmessage = (mes) => {
-            setMessages([mes,...messages]);
+            console.log('Message recieved: ' + mes.data);
+            let newList = [JSON.parse(mes.data),...messages];
+            console.log(newList);
+            setMessages((prevMessages) => {
+                const newMessage = JSON.parse(mes.data);
+                return [newMessage, ...prevMessages];
+              });
         }
 
         setWebSocket(socket);
@@ -85,11 +94,12 @@ function Chat(){
         fetch('/user/serverlist').then((data) => data.json()).then((data) => {
             if(data.status == 100){
                 console.log(data);
-                setServerList(data.payload);
+                setServerList(data.payload.serverList);
             }
             else {
                 setChatName('<Please Join Servers>');
             }
+            setUserName(data.payload.username);
         }).catch((e)=> {
             console.log(e);
         })
@@ -132,6 +142,26 @@ function Chat(){
         }
     }
 
+    async function sendMessage(){
+        const send = await fetch(`/user/sendServerMessages/${serverID}`, {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                serverID: serverID,
+                messageContent: textInput
+            })
+        })
+
+        const data = await send.json();
+        if(data.status == 100){
+            setTextInput('');
+            inputRef.current.value = '';
+            console.log('Message sent');
+        }
+    }
     return (
         <>
         <div id="Chat-container-grid">
@@ -158,21 +188,26 @@ function Chat(){
             </div>
             <div className="temp-purple" id="Chat-chatroom-main-content">
                 {messages.map((element) => {
-                    return (
-                    <Fragment key={element.message_id}>
-                        <NonUserChatBubble text={element.message} date={'today'}></NonUserChatBubble>
-                    </Fragment>
+                    if(element.username != username) return (
+                        <Fragment key={element.message_id}>
+                            <NonUserChatBubble userName={element.username} text={element.message} date={'today'}></NonUserChatBubble>
+                        </Fragment>
                     )
+                    else return (
+                        <Fragment key={element.message_id}>
+                            <UserChatBubble text={element.message} date={'today'}></UserChatBubble>
+                        </Fragment>
+                        )
                 })}
             </div>
             <div className="temp-yellow" id="Chat-signout-container">
-                <p id="Chat-signout-username">Pilot122x</p>
-                <button id="Chat-signout-button">Sign Out</button>
+                <p id="Chat-signout-username">{username}</p>
+                <button id="Chat-signout-button" onClick={() => console.log(messages)}>Sign Out</button>
             </div>
             <div className="temp-aqua" id="Chat-messaging-main-container">
                 <div id="Chat-messaging-content-container">
-                    <input type='text' id="Chat-message-box"></input>
-                    <button id="Chat-message-submit-btn">Send</button>
+                    <input type='text' id="Chat-message-box" onChange={(e) => setTextInput(e.target.value)} ref={inputRef}></input>
+                    <button id="Chat-message-submit-btn" onClick={(e) => sendMessage()} disabled={textInput == ''}>Send</button>
                 </div>
             </div>
         </div>
