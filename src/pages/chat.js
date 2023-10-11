@@ -105,6 +105,19 @@ function Chat(){
         })
     } , []) //Get server list on mount
 
+    async function paginate(){
+        if(origin.current == 'ENDOF'){
+            //Notify that there ate no more messages to load
+        }
+        else{
+            //Origin is either SQL or REDIS
+            if(origin.current == 'SQL'){
+                //Fix backend so timestamps are LESS than the one sent with url bcuz LOWER IS OLDER
+                let rawResults = fetch(`/user/sendServerMessages/${serverID}?origin=${origin.current}&timestamp=${messages[messages.length-1].created_at}`)
+
+            }
+        }
+    }
 
     async function handleServerClick(server){
         //fetch chat messages
@@ -115,11 +128,12 @@ function Chat(){
             console.log(jsonResults);
             if(jsonResults.status == 400){
                 setMessages([]);
+                origin.current = jsonResults.payload.origin;
             }
             else if(jsonResults.status == 100){
                 setMessages(jsonResults.payload.data);
                 origin.current = jsonResults.payload.origin;
-                offset.current = jsonResults.payload.data;
+                offset.current = jsonResults.payload.offset;
             }
             //set chat name
             let serverName;
