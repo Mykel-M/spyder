@@ -107,6 +107,7 @@ function Chat(){
     } , []) //Get server list on mount
 
      function paginate(){
+        console.log(messages);
         return new Promise(async (resolve,reject) => {
             if(origin.current == 'ENDOF'){
                 reject('ENDOF');
@@ -125,12 +126,18 @@ function Chat(){
                 }
                 else {
                     origin.current = jsonData.payload.origin;
-                    setMessages([...messages, jsonData.payload.data]);
+                    setMessages([...messages, ...jsonData.payload.data]);
                 }
             }
-            else { //Origin is REDIS 
+            else { //Origin is REDIS
+                //console.log(offset);
                 let rawResults = await fetch(`/user/pagination/${serverID}?origin=${origin.current}&offset=${offset.current}`)
                 let jsonData = await rawResults.json();
+                console.log('JSON DATA:')
+                console.log(jsonData.payload.offset);
+                console.log(jsonData.payload.origin);
+                //console.log('Message DATA:')
+                //console.log(messages);
                 origin.current = jsonData.payload.origin;
                 if(jsonData.payload.orgin == 'ENDOF'){
                     //SET END OF AND ALERT USER
@@ -139,10 +146,10 @@ function Chat(){
                 }
                 else if(jsonData.payload.orgin == 'REDIS'){
                     offset.current = jsonData.payload.offset;
-                    setMessages([...messages,jsonData.payload.data]);
+                    setMessages([...messages,...jsonData.payload.data]);
                 }
                 else { //mysql
-                    setMessages([...messages,jsonData.payload.data]);
+                    setMessages([...messages,...jsonData.payload.data]);
                 }
             }
             resolve('OK');
