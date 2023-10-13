@@ -41,10 +41,38 @@ function NonUserChatBubble({userName, text, date}){
     )
 }
 
-function ServerListItem({serverName, serverID}){
+function ChatRoomsPopUp({showPopUp}){
+    const [isLeftActive, setLeftActive] = useState(true);
     return (
     <>
-        
+        <div className='ChatRoomsPopUp-popup'>
+            <div className='ChatRoomsPopUp-headers-container'>
+                <div className={'ChatRoomsPopUp-header ' + (isLeftActive ? 'active':'')} onClick={() => setLeftActive(true)}><p>Find Server</p></div>
+                <div className={'ChatRoomsPopUp-header ' + (isLeftActive ? '':'active')} onClick={() => setLeftActive(false)}><p>Create Server</p></div>
+            </div>
+            <div className='ChatRoomsPopUp-content-container'>   
+            {isLeftActive ? 
+            (<>            
+                <div className='ChatRoomsPopUp-search-container'>
+                    <input id='ChatRoomsPopUp-searchbox' type='text'/>
+                    <input id='ChatRoomsPopUp-submitSearch' type='button' value={'Search'}></input>
+                </div>
+                <div className='ChatRoomsPopUp-results-container'>
+
+                </div>
+            </>): 
+            <>
+                <div id='ChatRoomsPopUp-createServer-container'>
+                
+                        <p>Server Name</p>
+                        <input type='text'></input>
+             
+                        <p>Server Description</p>
+                        <textarea></textarea>
+                </div>
+            </>}
+            </div>
+        </div>
     </>
     )
 }
@@ -94,7 +122,6 @@ function Chat(){
     useEffect(()=> {
         fetch('/user/serverlist').then((data) => data.json()).then((data) => {
             if(data.status == 100){
-                console.log(data);
                 setServerList(data.payload.serverList);
             }
             else {
@@ -107,7 +134,6 @@ function Chat(){
     } , []) //Get server list on mount
 
      function paginate(){
-        console.log(messages);
         return new Promise(async (resolve,reject) => {
             if(origin.current == 'ENDOF'){
                 reject('ENDOF');
@@ -133,11 +159,6 @@ function Chat(){
                 //console.log(offset);
                 let rawResults = await fetch(`/user/pagination/${serverID}?origin=${origin.current}&offset=${offset.current}`)
                 let jsonData = await rawResults.json();
-                console.log('JSON DATA:')
-                console.log(jsonData.payload.offset);
-                console.log(jsonData.payload.origin);
-                //console.log('Message DATA:')
-                //console.log(messages);
                 origin.current = jsonData.payload.origin;
                 if(jsonData.payload.orgin == 'ENDOF'){
                     //SET END OF AND ALERT USER
@@ -163,7 +184,6 @@ function Chat(){
             let rawResults = await fetch(`/user/getServerMessages/${server}`)
             //set chat messages
             let jsonResults = await rawResults.json()
-            console.log(jsonResults);
             if(jsonResults.status == 400){
                 setMessages([]);
                 origin.current = jsonResults.payload.origin;
@@ -229,6 +249,7 @@ function Chat(){
 
     return (
         <>
+        <ChatRoomsPopUp></ChatRoomsPopUp>
         <div id="Chat-container-grid">
             <div className="temp-red" id="Chat-chatroom-btn-container">
                 <button id='Chat-addchatroom-btn'>Add Chat Room</button>

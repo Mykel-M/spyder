@@ -246,3 +246,91 @@
     box-shadow: inset 100px 0 0 0 #0f0f0f;
     color: black;
   }
+
+  .ChatRoomsPopUp-headers-container {
+    display: flex;
+    box-sizing: border-box;
+  }
+
+  .ChatRoomsPopUp-header {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    border: 3px solid;
+  }
+
+ .active{
+    border: 4px solid;
+    background-color: lavender;
+  }
+
+  .ChatRoomsPopUp-popup {
+    box-sizing: border-box;
+    width:55%;
+    height: 70%;
+    z-index: 1000;
+    position: absolute;
+    left: 23%;
+    top: 10%;
+    background-color: white;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .ChatRoomsPopUp-content-container{
+    box-sizing: border-box;
+    width: 100%;
+    height: 100%;
+    border-width: 0px 3px 3px 3px;
+    border-style: solid;
+  }
+
+  .ChatRoomsPopUp-search-container{
+    width: 100%;
+    height:30%;
+    box-sizing: border-box;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 0px 20px;
+  }
+
+  #ChatRoomsPopUp-searchbox {
+    box-sizing: border-box;
+    width: 60%;
+    margin-right: 20px;
+    padding: 10px;
+    font-size: 16px;
+  }
+
+  #ChatRoomsPopUp-submitSearch {
+    height: 42px;
+    width: 70px;
+    border: none;
+    background-color: lightseagreen;
+    cursor: pointer;
+    color:white;
+  }
+
+  #ChatRoomsPopUp-submitSearch:hover{
+    background-color: darkseagreen;
+  }
+
+  .ChatRoomsPopUp-createServer-div {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+    gap:20px
+  }
+
+  #ChatRoomsPopUp-createServer-container {
+    box-sizing: border-box;
+    width: 100%;
+    height: 80%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap:20px;
+  }
