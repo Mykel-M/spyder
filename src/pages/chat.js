@@ -60,6 +60,7 @@ function Chat(){
     const origin = useRef('');
     const offset = useRef(0);
     const inputRef = useRef(null);
+    const chatRef = useRef(null);
     
     useEffect(() => {
         const socket = new WebSocket('ws://localhost:8080')
@@ -105,18 +106,48 @@ function Chat(){
         })
     } , []) //Get server list on mount
 
-    async function paginate(){
-        if(origin.current == 'ENDOF'){
-            //Notify that there ate no more messages to load
-        }
-        else{
+     function paginate(){
+        return new Promise(async (resolve,reject) => {
+            if(origin.current == 'ENDOF'){
+                reject('ENDOF');
+                return;
+            }
+
             //Origin is either SQL or REDIS
             if(origin.current == 'SQL'){
-                //Fix backend so timestamps are LESS than the one sent with url bcuz LOWER IS OLDER
-                let rawResults = fetch(`/user/sendServerMessages/${serverID}?origin=${origin.current}&timestamp=${messages[messages.length-1].created_at}`)
-
+                let rawResults = await fetch(`/user/pagination/${serverID}?origin=${origin.current}&timestamp=${messages[messages.length-1].created_at}`)
+                let jsonData = await rawResults.json();
+                if(jsonData.payload.origin == 'ENDOF'){
+                    origin.current = jsonData.payload.origin;
+                    reject('ENDOF');
+                    return;
+                    //Somehow alert the user there is no more messages to load
+                }
+                else {
+                    origin.current = jsonData.payload.origin;
+                    setMessages([...messages, jsonData.payload.data]);
+                }
             }
-        }
+            else { //Origin is REDIS 
+                let rawResults = await fetch(`/user/pagination/${serverID}?origin=${origin.current}&offset=${offset.current}`)
+                let jsonData = await rawResults.json();
+                origin.current = jsonData.payload.origin;
+                if(jsonData.payload.orgin == 'ENDOF'){
+                    //SET END OF AND ALERT USER
+                    reject('ENDOF');
+                    return;
+                }
+                else if(jsonData.payload.orgin == 'REDIS'){
+                    offset.current = jsonData.payload.offset;
+                    setMessages([...messages,jsonData.payload.data]);
+                }
+                else { //mysql
+                    setMessages([...messages,jsonData.payload.data]);
+                }
+            }
+            resolve('OK');
+        })
+
     }
 
     async function handleServerClick(server){
@@ -176,6 +207,19 @@ function Chat(){
             console.log('Message sent');
         }
     }
+
+    async function handleScroll(){
+        if(-chatRef.current.scrollTop + chatRef.current.offsetHeight >= chatRef.current.scrollHeight) {
+            try {
+                await paginate();
+                chatRef.current.scrollTop += 100; //Push sown scrollbar a little
+            }
+            catch(e){
+                if(e == 'ENDOF') console.log('No more messages');
+            }
+        }
+    }
+
     return (
         <>
         <div id="Chat-container-grid">
@@ -200,7 +244,7 @@ function Chat(){
                     )
                 })}
             </div>
-            <div className="temp-purple" id="Chat-chatroom-main-content">
+            <div className="temp-purple" id="Chat-chatroom-main-content" ref={chatRef} onScroll={() => {handleScroll()}}>
                 {messages.map((element) => {
                     if(element.username != username) return (
                         <Fragment key={element.message_id}>
