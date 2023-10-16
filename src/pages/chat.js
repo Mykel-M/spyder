@@ -41,11 +41,56 @@ function NonUserChatBubble({userName, text, date}){
     )
 }
 
+function ServerSearchItem({props}){
+    return (
+    <>
+        <div className='ServerCard-container'>
+            <h1>{props.name}</h1>
+            <p>{props.text}</p>
+            <button>Join Server</button>
+        </div>
+    </>
+    )
+}
+
+let bootleg = {name: 'Anime Server', text: 'A server for anime geeks and no one \else, if you are not one of those, dont join. A server for anime geeks and no one else, if you are not one of those, dont join.'};
+
 function ChatRoomsPopUp({showPopUp}){
     const [isLeftActive, setLeftActive] = useState(true);
+    const [newServerName, setNewServerName] = useState('');
+    const [newServerDesc, setNewServerDesc] = useState('');
+    const [searchQuery, setSearchQuery] = useState('');
+    const [showError, setShowError] = useState(false); 
+
+    async function submitUserInfo(){
+        
+        let rawResults = await fetch('/api/createServer', {
+            method:'POST',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+              },
+            body: JSON.stringify({serverName: newServerName, serverDesc: newServerDesc})
+        })
+        let jsonResults = await rawResults.json();
+        if(jsonResults.status == 100){
+            //Success
+            alert('Server has been successfully created');
+            //Add server to user serverlist
+        }
+        else {
+            //Failure
+        }
+    }
+
+    function updateServerName() {
+        
+    }
+
     return (
     <>
         <div className='ChatRoomsPopUp-popup'>
+            <button id='ChatRoomsPopUp-close-btn' onClick={() => {showPopUp(false)}}>X</button>
             <div className='ChatRoomsPopUp-headers-container'>
                 <div className={'ChatRoomsPopUp-header ' + (isLeftActive ? 'active':'')} onClick={() => setLeftActive(true)}><p>Find Server</p></div>
                 <div className={'ChatRoomsPopUp-header ' + (isLeftActive ? '':'active')} onClick={() => setLeftActive(false)}><p>Create Server</p></div>
@@ -58,17 +103,25 @@ function ChatRoomsPopUp({showPopUp}){
                     <input id='ChatRoomsPopUp-submitSearch' type='button' value={'Search'}></input>
                 </div>
                 <div className='ChatRoomsPopUp-results-container'>
-
+                    <ServerSearchItem props={bootleg}></ServerSearchItem>
+                    <ServerSearchItem props={bootleg}></ServerSearchItem>
+                    <ServerSearchItem props={bootleg}></ServerSearchItem>
+                    <ServerSearchItem props={bootleg}></ServerSearchItem>
+                    <ServerSearchItem props={bootleg}></ServerSearchItem>
                 </div>
             </>): 
             <>
                 <div id='ChatRoomsPopUp-createServer-container'>
-                
-                        <p>Server Name</p>
-                        <input type='text'></input>
+                    <div className='ChatRoomsPopUp-main-content'>
+                        <p className='ChatRoomsPopUp-title'>Server Name {showError ? <span id='ChatRoomsPopUp-error-text'>(Server name taken)</span> : <></>}</p>
+                        <input type='text' className={showError ? 'ChatRoomsPopUp-error-border' : ''} id='ChatRoomsPopUp-inputField' onChange={(e) => {setNewServerName(e.target.value); setShowError(false)}}></input>
              
-                        <p>Server Description</p>
-                        <textarea></textarea>
+                        <p className='ChatRoomsPopUp-title'>Server Description</p>
+                        <textarea id='ChatRoomsPopUp-textAreaField' onChange={(e) => {setNewServerDesc(e.target.value)}}></textarea>
+                    </div>
+                    <div id='ChatRoomsPopUp-button-container'>
+                        <input type='button' id='ChatRoomsPopUp-submit' value='Submit' onClick={() => {submitUserInfo()}}></input>
+                    </div>
                 </div>
             </>}
             </div>
@@ -85,6 +138,7 @@ function Chat(){
     const [webSocket, setWebSocket] = useState(undefined);
     const [textInput, setTextInput] = useState('')
     const [username, setUserName] = useState('')
+    const [displayPopUp, setDisplayPopUp] = useState(false);
     const origin = useRef('');
     const offset = useRef(0);
     const inputRef = useRef(null);
@@ -249,10 +303,10 @@ function Chat(){
 
     return (
         <>
-        <ChatRoomsPopUp></ChatRoomsPopUp>
+       {displayPopUp ? <ChatRoomsPopUp showPopUp={setDisplayPopUp}></ChatRoomsPopUp> : <></>}
         <div id="Chat-container-grid">
             <div className="temp-red" id="Chat-chatroom-btn-container">
-                <button id='Chat-addchatroom-btn'>Add Chat Room</button>
+                <button id='Chat-addchatroom-btn' onClick={() => {setDisplayPopUp(true);}}>Add Chat Room</button>
             </div>
             <div id="Chat-chatroom-desc-main-container">
                 <div id="Chat-chatroom-desc-content-container">
