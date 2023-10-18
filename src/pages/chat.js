@@ -41,26 +41,46 @@ function NonUserChatBubble({userName, text, date}){
     )
 }
 
-function ServerSearchItem({props}){
+function ServerSearchItem({props,updateServerList, popUpOpen}){
+    async function joinServer(){
+        let rawResults = await fetch('/api/joinServer', {
+            method:'POST',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({serverID:props.room_id})
+        })
+        let jsonResuls = await rawResults.json();
+        if(jsonResuls.status == 100){
+            updateServerList(props.room_name, props.room_id);
+            popUpOpen(false);
+        }
+        else {
+            alert('Unable to Join this server, possible server Issues');
+        }
+
+    }
+
     return (
     <>
         <div className='ServerCard-container'>
-            <h1>{props.name}</h1>
-            <p>{props.text}</p>
-            <button>Join Server</button>
+            <h1>{props.room_name}</h1>
+            <p>{props.description}</p>
+            <button onClick={joinServer}>Join Server</button>
         </div>
     </>
     )
 }
 
-let bootleg = {name: 'Anime Server', text: 'A server for anime geeks and no one \else, if you are not one of those, dont join. A server for anime geeks and no one else, if you are not one of those, dont join.'};
 
-function ChatRoomsPopUp({showPopUp}){
+function ChatRoomsPopUp({showPopUp, addToServerList}){
     const [isLeftActive, setLeftActive] = useState(true);
     const [newServerName, setNewServerName] = useState('');
     const [newServerDesc, setNewServerDesc] = useState('');
     const [searchQuery, setSearchQuery] = useState('');
-    const [showError, setShowError] = useState(false); 
+    const [showError, setShowError] = useState(false);
+    const [searchResults, setSearchResults] = useState([]);
 
     async function submitUserInfo(){
         
@@ -77,14 +97,33 @@ function ChatRoomsPopUp({showPopUp}){
             //Success
             alert('Server has been successfully created');
             //Add server to user serverlist
+            addToServerList(newServerName, jsonResults.payload.serverid);
+            showPopUp(false);
+        }
+        else if(jsonResults.status == 400){
+            //Failure
+            setShowError(true);
         }
         else {
-            //Failure
+            alert('Server Error, Please try again momentarily');
         }
     }
 
-    function updateServerName() {
-        
+    async function serverSearch() {
+        let query = encodeURIComponent(searchQuery);
+        let rawResults = await fetch(`/api/search?q=${searchQuery}`);
+        let jsonResults = await rawResults.json();
+        if(jsonResults.status == 100){
+            console.log(jsonResults.payload.data);
+            setSearchResults([...jsonResults.payload.data]);
+        }
+        else if(jsonResults.status == 400){
+            setSearchResults([]);
+            alert('No Results Found');
+        }
+        else {
+            alert('Server error');
+        }
     }
 
     return (
@@ -99,15 +138,18 @@ function ChatRoomsPopUp({showPopUp}){
             {isLeftActive ? 
             (<>            
                 <div className='ChatRoomsPopUp-search-container'>
-                    <input id='ChatRoomsPopUp-searchbox' type='text'/>
-                    <input id='ChatRoomsPopUp-submitSearch' type='button' value={'Search'}></input>
+                    <input id='ChatRoomsPopUp-searchbox' type='text' onChange={(e) => setSearchQuery(e.target.value)}/>
+                    <input id='ChatRoomsPopUp-submitSearch' type='button' value={'Search'} onClick={serverSearch} disabled={searchQuery.length < 3}></input>
                 </div>
                 <div className='ChatRoomsPopUp-results-container'>
-                    <ServerSearchItem props={bootleg}></ServerSearchItem>
-                    <ServerSearchItem props={bootleg}></ServerSearchItem>
-                    <ServerSearchItem props={bootleg}></ServerSearchItem>
-                    <ServerSearchItem props={bootleg}></ServerSearchItem>
-                    <ServerSearchItem props={bootleg}></ServerSearchItem>
+                    {searchResults.map((item) => {
+                        return (
+                            <Fragment key={item.room_id}>
+                                <ServerSearchItem props={item} updateServerList={addToServerList} popUpOpen={showPopUp}></ServerSearchItem>
+                            </Fragment>
+                        )
+                    })}
+                    
                 </div>
             </>): 
             <>
@@ -301,9 +343,17 @@ function Chat(){
         }
     }
 
+    function addToServerList(name, id){
+        setServerList([...serverList, {serverID:id, serverName:name}]);
+    }
+
+    function leaveServer() {
+        
+    }
+
     return (
         <>
-       {displayPopUp ? <ChatRoomsPopUp showPopUp={setDisplayPopUp}></ChatRoomsPopUp> : <></>}
+       {displayPopUp ? <ChatRoomsPopUp showPopUp={setDisplayPopUp} addToServerList={addToServerList}></ChatRoomsPopUp> : <></>}
         <div id="Chat-container-grid">
             <div className="temp-red" id="Chat-chatroom-btn-container">
                 <button id='Chat-addchatroom-btn' onClick={() => {setDisplayPopUp(true);}}>Add Chat Room</button>
@@ -312,7 +362,7 @@ function Chat(){
                 <div id="Chat-chatroom-desc-content-container">
                     <p id="Chat-title-text">{chatName}</p>
                     <div id="Chat-spacer"></div>
-                    <button id="Chat-leave-btn">Leave Chat</button>
+                    <button id="Chat-leave-btn" onClick={() => leaveServer}>Leave Chat</button>
                 </div>
             </div>
             <div className="temp-green" id="Chat-chatroom-list-container">
