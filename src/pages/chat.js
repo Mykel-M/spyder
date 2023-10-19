@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { useEffect } from 'react';
 import { Fragment } from 'react';
 import { useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 function UserChatBubble({text,date}) {
     return (
@@ -185,6 +186,8 @@ function Chat(){
     const offset = useRef(0);
     const inputRef = useRef(null);
     const chatRef = useRef(null);
+    let navigate = useNavigate();
+
     
     useEffect(() => {
         const socket = new WebSocket('ws://localhost:8080')
@@ -347,8 +350,49 @@ function Chat(){
         setServerList([...serverList, {serverID:id, serverName:name}]);
     }
 
-    function leaveServer() {
-        
+    async function leaveServer() {
+        let rawResponse = await fetch(`/api/leaveServer/${serverID}`, {
+            method: 'DELETE',
+            headers: {
+                'Accept': 'application/json',
+            }
+        })
+        let jsonResponse = await rawResponse.json();
+        if(jsonResponse.status == 100){
+            let copy = serverList.filter((item) => {
+                return item.serverID != serverID;
+            })
+            setServerList(copy);
+            if(copy.length >= 1) {
+                handleServerClick(copy[0].serverID)
+            }
+            else {
+                setServerID(0);
+                setChatName('Default');
+            }
+            
+        }
+        else if(jsonResponse.status == 200){
+            alert('Invalid Request, No longer in server');
+        }
+        else {
+            alert('Server Error');
+        }
+    }
+
+    async function signout(){
+        let rawResponse = await fetch('/user/signout', {
+            method:'DELETE',
+            headers: {
+                'Accept': 'application/json'
+            }
+        })
+
+        let jsonData = await rawResponse.json();
+        if(jsonData.status == 100){
+            sessionStorage.removeItem('isLogged');
+            navigate('/login')
+        }
     }
 
     return (
@@ -362,7 +406,7 @@ function Chat(){
                 <div id="Chat-chatroom-desc-content-container">
                     <p id="Chat-title-text">{chatName}</p>
                     <div id="Chat-spacer"></div>
-                    <button id="Chat-leave-btn" onClick={() => leaveServer}>Leave Chat</button>
+                    <button id="Chat-leave-btn" onClick={() => leaveServer()}>Leave Chat</button>
                 </div>
             </div>
             <div className="temp-green" id="Chat-chatroom-list-container">
@@ -392,7 +436,7 @@ function Chat(){
             </div>
             <div className="temp-yellow" id="Chat-signout-container">
                 <p id="Chat-signout-username">{username}</p>
-                <button id="Chat-signout-button" onClick={() => console.log(messages)}>Sign Out</button>
+                <button id="Chat-signout-button" onClick={() => signout()}>Sign Out</button>
             </div>
             <div className="temp-aqua" id="Chat-messaging-main-container">
                 <div id="Chat-messaging-content-container">
