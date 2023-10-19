@@ -278,6 +278,14 @@ function Chat(){
     }
 
     async function handleServerClick(server){
+        //Unsubscribe from previous chat
+        if(serverID != 0){
+            const event = {
+                type:'unsubscribe',
+                data: server
+            }
+            webSocket.send(JSON.stringify(event));
+        }
         //fetch chat messages
         if(serverID != server){
             let rawResults = await fetch(`/user/getServerMessages/${server}`)

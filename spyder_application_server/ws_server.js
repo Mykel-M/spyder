@@ -9,7 +9,8 @@ wSocket_server.on('connection', (ws) => {
     ws.on('open', () => {console.log('connection established')});
     ws.on('message', (message) => {
         message = JSON.parse(message);
-        if(message.type = 'subscribe'){
+        console.log(message);
+        if(message.type === 'subscribe'){
             const serverID = message.data;
             redisClient.subscribe(serverID);
             console.log(`User subscribed to ${serverID}`);
@@ -21,6 +22,10 @@ wSocket_server.on('connection', (ws) => {
                     ws.send(message);
                 }
             })
+        }
+        else if(message.type === 'unsubscribe'){
+            redisClient.unsubscribe();
+            console.log('User unsubscribed')
         }
     })
 

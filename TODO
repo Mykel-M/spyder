@@ -1,0 +1,7 @@
+Handle strange errors:
+
+1. On server switch, my server messages are not being cleared IF the cache/db has
+messages for the server I am switcing to and FROM
+
+2. Websocket sometimes randomly broadcasts messages multiple times and on multiple
+servers, likely due to not unsubscribing (multiple server subs).
