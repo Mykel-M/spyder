@@ -279,7 +279,7 @@ function Chat(){
 
     async function handleServerClick(server){
         //Unsubscribe from previous chat
-        if(serverID != 0){
+        if(serverID != 0 && server != serverID){
             const event = {
                 type:'unsubscribe',
                 data: server
@@ -291,14 +291,18 @@ function Chat(){
             let rawResults = await fetch(`/user/getServerMessages/${server}`)
             //set chat messages
             let jsonResults = await rawResults.json()
+            console.log('In here for server: ' + server);
+            console.log(jsonResults);
             if(jsonResults.status == 400){
                 setMessages([]);
                 origin.current = jsonResults.payload.origin;
             }
             else if(jsonResults.status == 100){
-                setMessages(jsonResults.payload.data);
+                setMessages([...jsonResults.payload.data]);
                 origin.current = jsonResults.payload.origin;
                 offset.current = jsonResults.payload.offset;
+                console.log('In here: ' + server);
+                console.log(jsonResults);
             }
             //set chat name
             let serverName;
@@ -444,7 +448,7 @@ function Chat(){
             </div>
             <div className="temp-yellow" id="Chat-signout-container">
                 <p id="Chat-signout-username">{username}</p>
-                <button id="Chat-signout-button" onClick={() => signout()}>Sign Out</button>
+                <button id="Chat-signout-button" onClick={() => alert(serverID)}>Sign Out</button>
             </div>
             <div className="temp-aqua" id="Chat-messaging-main-container">
                 <div id="Chat-messaging-content-container">

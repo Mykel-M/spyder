@@ -260,7 +260,7 @@ app.get('/user/getServerMessages/:serverID', async (req,res) => {
         try {
             let messages = await fetchMessages(server,0,30);
             if(messages.length < 1) {
-                res.send({staus:100, payload:{
+                res.send({status:100, payload:{
                     origin: 'REDIS',
                     offset: 0, //No more messages to get from redis
                     data: messageCache
