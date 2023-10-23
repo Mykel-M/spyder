@@ -42,7 +42,7 @@ function NonUserChatBubble({userName, text, date}){
     )
 }
 
-function ServerSearchItem({props,updateServerList, popUpOpen}){
+function ServerSearchItem({props,updateServerList, popUpOpen, alreadyJoined}){
     async function joinServer(){
         let rawResults = await fetch('/api/joinServer', {
             method:'POST',
@@ -68,14 +68,14 @@ function ServerSearchItem({props,updateServerList, popUpOpen}){
         <div className='ServerCard-container'>
             <h1>{props.room_name}</h1>
             <p>{props.description}</p>
-            <button onClick={joinServer}>Join Server</button>
+            {!alreadyJoined ? <button onClick={joinServer}>Join Server</button> : <button disabled>Already Joined</button>}
         </div>
     </>
     )
 }
 
 
-function ChatRoomsPopUp({showPopUp, addToServerList}){
+function ChatRoomsPopUp({showPopUp, addToServerList, serverSet}){
     const [isLeftActive, setLeftActive] = useState(true);
     const [newServerName, setNewServerName] = useState('');
     const [newServerDesc, setNewServerDesc] = useState('');
@@ -146,7 +146,7 @@ function ChatRoomsPopUp({showPopUp, addToServerList}){
                     {searchResults.map((item) => {
                         return (
                             <Fragment key={item.room_id}>
-                                <ServerSearchItem props={item} updateServerList={addToServerList} popUpOpen={showPopUp}></ServerSearchItem>
+                                <ServerSearchItem props={item} updateServerList={addToServerList} popUpOpen={showPopUp} alreadyJoined={serverSet.has(item.room_id)}></ServerSearchItem>
                             </Fragment>
                         )
                     })}
@@ -187,7 +187,15 @@ function Chat(){
     const inputRef = useRef(null);
     const chatRef = useRef(null);
     let navigate = useNavigate();
-
+    let setOfServerID = useRef();
+    //Check if user has valid jwt to access this page or isLogged
+    useEffect(() => {
+        fetch('/auth/validateJWT').then((data) => data.json()).then((d) => {
+            if(d.status != 100) {
+                navigate('/login');
+            }
+        })
+    })
     
     useEffect(() => {
         const socket = new WebSocket('ws://localhost:8080')
@@ -222,6 +230,7 @@ function Chat(){
         fetch('/user/serverlist').then((data) => data.json()).then((data) => {
             if(data.status == 100){
                 setServerList(data.payload.serverList);
+                setOfServerID.current = new Set(data.payload.serverList.map((item) => item.serverID))
             }
             else {
                 setChatName('<Please Join Servers>');
@@ -291,8 +300,6 @@ function Chat(){
             let rawResults = await fetch(`/user/getServerMessages/${server}`)
             //set chat messages
             let jsonResults = await rawResults.json()
-            console.log('In here for server: ' + server);
-            console.log(jsonResults);
             if(jsonResults.status == 400){
                 setMessages([]);
                 origin.current = jsonResults.payload.origin;
@@ -301,8 +308,6 @@ function Chat(){
                 setMessages([...jsonResults.payload.data]);
                 origin.current = jsonResults.payload.origin;
                 offset.current = jsonResults.payload.offset;
-                console.log('In here: ' + server);
-                console.log(jsonResults);
             }
             //set chat name
             let serverName;
@@ -350,7 +355,7 @@ function Chat(){
         if(-chatRef.current.scrollTop + chatRef.current.offsetHeight >= chatRef.current.scrollHeight) {
             try {
                 await paginate();
-                chatRef.current.scrollTop += 100; //Push sown scrollbar a little
+                //chatRef.current.scrollTop += 100; //Push sown scrollbar a little
             }
             catch(e){
                 if(e == 'ENDOF') console.log('No more messages');
@@ -409,7 +414,7 @@ function Chat(){
 
     return (
         <>
-       {displayPopUp ? <ChatRoomsPopUp showPopUp={setDisplayPopUp} addToServerList={addToServerList}></ChatRoomsPopUp> : <></>}
+       {displayPopUp ? <ChatRoomsPopUp showPopUp={setDisplayPopUp} addToServerList={addToServerList} serverSet={setOfServerID.current}></ChatRoomsPopUp> : <></>}
         <div id="Chat-container-grid">
             <div className="temp-red" id="Chat-chatroom-btn-container">
                 <button id='Chat-addchatroom-btn' onClick={() => {setDisplayPopUp(true);}}>Add Chat Room</button>
@@ -448,7 +453,7 @@ function Chat(){
             </div>
             <div className="temp-yellow" id="Chat-signout-container">
                 <p id="Chat-signout-username">{username}</p>
-                <button id="Chat-signout-button" onClick={() => alert(serverID)}>Sign Out</button>
+                <button id="Chat-signout-button" onClick={() => signout()}>Sign Out</button>
             </div>
             <div className="temp-aqua" id="Chat-messaging-main-container">
                 <div id="Chat-messaging-content-container">

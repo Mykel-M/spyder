@@ -84,29 +84,32 @@ function SignUp(){
 
     async function signup(){
         try {
-        const rawResponse = await fetch('/user/signup', {
-            method:'POST',
-            headers: {
-                "Content-type": "application/json"
-            },
-            body: JSON.stringify({email:email,username:userName, password:password})
-        });
-        let response = await rawResponse.json();
-        if(response.status == 100){
-            navigate('/login');
+            const rawResponse = await fetch('/user/signup', {
+                method:'POST',
+                headers: {
+                    "Content-type": "application/json"
+                },
+                body: JSON.stringify({email:email,username:userName, password:password})
+            });
+            let response = await rawResponse.json();
+            if(response.status == 100){
+                navigate('/login');
+            }
+            else if(response.status == 501){ //User name taken
+                setShowError({...showError,userNameError:true,userNameErrorMsg: 'Username in use'});
+            }
+            else if(response.status == 502) { //Email in use
+                setShowError({...showError,emailError:true,emailErrorMsg: 'Email in use'});
+            }
+            else if(response.status == 503) { //Both in use
+                setShowError({...showError,userNameError:true,userNameErrorMsg: 'Username in use',emailError:true,emailErrorMsg: 'Email in use'});
+            }
+            else { //STATUS = 500, Failed to hash or Insert Record
+                alert('Server Error: Please wait a moment and try again');
+            }
         }
-        else if(response.status == 501){ //User name taken
-            setShowError({...showError,userNameError:true,userNameErrorMsg: 'Username in use'});
-        }
-        else if(response.status == 502) { //Email in use
-            setShowError({...showError,emailError:true,emailErrorMsg: 'Email in use'});
-        }
-        else if(response.status == 503) { //Both in use
-            setShowError({...showError,userNameError:true,userNameErrorMsg: 'Username in use',emailError:true,emailErrorMsg: 'Email in use'});
-        }
-        }
-        catch{
-            console.log('Failed to sign up') //Better error handling needed
+        catch{ //No response from server.
+            alert('Server Error: Please wait a moment and try again');
         }
     }
 

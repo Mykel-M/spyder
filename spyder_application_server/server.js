@@ -8,13 +8,8 @@ const cookieParser = require('cookie-parser')
 const Redis = require('redis');
 const redisClient = Redis.createClient();
 const {v4: uuidv4} = require('uuid');
+const util = require('util');
 
-
-try {
-    redisClient.connect();
-}catch(e){
-    console.log(e);
-}
 
 const connection = mysql.createConnection({
     host: process.env.MYSQL_HOST,
@@ -23,12 +18,6 @@ const connection = mysql.createConnection({
     database: process.env.MYSQL_DB
 });
 
-connection.connect((e) => {
-    if(e) {
-        console.log('Failed to connect to MySQL DB')
-        return;
-    }
-});
 
 app.use(cookieParser());
 app.use(express.json());
@@ -39,23 +28,21 @@ function hasValidJWT(req,res,next){
             res.send({status:500, payload:'Must log in'});
             console.log("In here");
         }
-        try {
-            res.locals.jwt_authorization = jwt.verify(req.cookies.jwt_authorization, process.env.ACCESS_TOKEN_SECRET);
-            next();
-        }
-        catch(err){
-            res.clearCookie('jwt_authorization');
-            res.send({status: 500, payload:'Invalid JWT Token'});
+        else{
+            try {
+                res.locals.jwt_authorization = jwt.verify(req.cookies.jwt_authorization, process.env.ACCESS_TOKEN_SECRET);
+                next();
+            }
+            catch(err){
+                res.clearCookie('jwt_authorization');
+                res.send({status: 500, payload:'Invalid JWT Token'});
+            }
         }
     }
     else {
         res.send({status:500, payload:'No cookies'});
     }
 }
-
-app.get('/test',(req,res) => {
-    res.send("Hi cuz");
-})
 
 app.get('/auth/validateJWT',hasValidJWT,(req,res) => {
     res.send({status: 100, payload:'Valid JWT Token'});
@@ -131,8 +118,9 @@ app.post('/user/signup', async (req,res) => {
         res.send({status:100, payload:'Nothing'});
         //return
     }
-    catch{
+    catch{ //Failure to hash or store record
         console.log(e);
+        res.send({status:500, payload:'Server error'});
     }
 
 })
@@ -203,7 +191,7 @@ app.post('/auth/user', async (req,res) => {
 
 })
 
-app.get('/user/getServerMessages/:serverID', async (req,res) => {
+app.get('/user/getServerMessages/:serverID', hasValidJWT, async (req,res) => {
     let fetchMessages = (server, offset, limit) => {
         return new Promise((resolve, reject) => {
             connection.query(`SELECT m.message_id, m.user_id AS userID, u.username AS username, m.created_at ,m.content AS message
@@ -322,11 +310,6 @@ app.get('/user/getServerMessages/:serverID', async (req,res) => {
 
 app.post('/user/sendServerMessages/:serverID',hasValidJWT, async (req, res) => {
     // {serverID: num , messageContent: 'message'}
-    let storeInDB = (values) => {
-        return new Promise((resolve, reject) => {
-            connection.query(`INSERT INTO messages (room_id, user_id, content, created_at) VALUES ${values}`)
-        })
-    }
     let userId = res.locals.jwt_authorization.uid;
     let user = res.locals.jwt_authorization.username;
     let data = req.body;
@@ -512,7 +495,7 @@ app.post('/api/createServer', hasValidJWT, async (req, res) => {
         res.send({status:100, payload:{serverid:serverID}});
     }
     catch(e){
-        //Handle errors hear
+        //Handle errors here
         if(e == 'NAMENOTUNIQUE'){
             res.send({status:400})
             return
@@ -611,4 +594,13 @@ app.delete('/user/signout', hasValidJWT, (req, res) => {
     res.send({status:100});
 })
 
-app.listen(5000,()=>{console.log('Server has started')});
+
+try {
+    redisClient.connect();
+    connection.connect();
+    app.listen(5000,()=>{console.log('Server has started')});
+}
+catch(e) {
+    console.log('Failed to connect to either Redis or MySQL, ensure they are started');
+    console.log(e);
+}

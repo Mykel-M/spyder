@@ -372,6 +372,7 @@
   }
 
   .ServerCard-container {
+    position:relative;
     box-sizing: border-box;
     height: 200px;
     width: 200px;
@@ -396,15 +397,20 @@
   }
 
 .ServerCard-container button {
+    position: absolute;
     box-sizing: border-box;
     height: 40px;
-    margin-right: 5px;
-    margin-left: 5px;
-    margin-bottom: 5px;
+    margin:auto;
     background-color: blue;
     color: white;
     border: none;
     cursor: pointer;
+    bottom: 0;
+    width: 100%;
+}
+
+.ServerCard-container button:disabled {
+    background-color: black;
 }
 
 .ChatRoomsPopUp-results-container {
